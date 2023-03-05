@@ -1,0 +1,23 @@
+import tensorflow as tf
+import numpy as np
+from keras.models import Model, load_model
+from keras.layers import Input
+
+model = load_model('pre_trained_seq2seq_model.h5')
+
+progress_notes = np.load('progress_notes.npy')
+
+tokenized_notes = [tf.keras.preprocessing.text.text_to_word_sequence(note) for note in progress_notes]
+
+padded_notes = tf.keras.preprocessing.sequence.pad_sequences(tokenized_notes, padding='post')
+
+summaries = []
+for note in padded_notes:
+    note = np.insert(note, 0, 1)
+    summary = model.predict(np.array([note]))
+    summary = summary[0][1:-1]
+    summary_text = tf.keras.preprocessing.text.tokenizer.sequences_to_texts([summary])
+    summaries.append(summary_text)
+
+for summary in summaries:
+    print(summary)
